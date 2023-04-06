@@ -126,4 +126,4 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-release-notes-*
+release-notes-*.md

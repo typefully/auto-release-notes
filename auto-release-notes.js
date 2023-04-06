@@ -15,6 +15,8 @@ const linearClient = new LinearClient({
   apiKey: LINEAR_API_KEY,
 });
 
+/* ---------- Fetch and format completed issues from the past week ---------- */
+
 async function getCompletedIssues() {
   const oneWeekAgo = dayjs().subtract(7, "day").toISOString();
   const issues = await linearClient.issues({
@@ -28,19 +30,33 @@ async function getCompletedIssues() {
 
   console.log(chalk.green(`○ Found ${issues.nodes.length} completed issues`));
 
+  // Format issue details and generate task summaries
   let issueText = await Promise.all(
     issues.nodes.map(async (issue) => {
+      // Format each issue labels
       const labels = await issue.labels();
       const labelsString =
         labels.nodes.length > 0
           ? "Tags: " + labels.nodes.map((label) => label.name).join(", ") + "\n"
           : "";
-      
-      const description = ((issue.description || "").split(". ").slice(0, 2).join(". ").split("![")[0].slice(0, 120)).trim();
+
+      // Format issue description
+      const description = issue.description || "";
+      const cleanedDescription = description
+        .split(". ")
+        .slice(0, 2)
+        .join(". ")
+        .split("![")[0]
+        .slice(0, 120)
+        .trim();
+
+      const filteredDescription =
+        cleanedDescription.startsWith("!") || cleanedDescription.startsWith("[")
+          ? ""
+          : cleanedDescription;
 
       return `# ${issue.title}
-${labelsString}
-${(description.startsWith("!") || description.startsWith("[")) ? "" : description}`.trim();
+${labelsString}${filteredDescription}`.trim();
     })
   );
 
@@ -48,6 +64,8 @@ ${(description.startsWith("!") || description.startsWith("[")) ? "" : descriptio
 
   return issueText;
 }
+
+/* ------------------------- Set up OpenAI streaming ------------------------ */
 
 async function OpenAIStream(payload) {
   const encoder = new TextEncoder();
@@ -62,6 +80,7 @@ async function OpenAIStream(payload) {
     body: JSON.stringify(payload),
   });
 
+  // Handle the data received from OpenAI
   const onParse = (event) => {
     if (event.type === "event") {
       const data = event.data;
@@ -72,10 +91,13 @@ async function OpenAIStream(payload) {
       try {
         const json = JSON.parse(data);
         const text = json.choices[0].delta?.content || "";
+
         if (counter < 2 && (text.match(/\n/) || []).length) {
           return;
         }
+
         const queue = encoder.encode(text);
+
         if (!queue) {
           customReadableStream.push(null);
         } else {
@@ -96,6 +118,7 @@ async function OpenAIStream(payload) {
   });
 
   res.body.setEncoding("utf8");
+
   res.body.on("data", (chunk) => {
     parser.feed(chunk);
   });
@@ -107,13 +130,18 @@ async function OpenAIStream(payload) {
   return customReadableStream;
 }
 
+/* ------------- Generate the release notes markdown with GPT-4 ------------- */
+
 async function requestSummary(issueText) {
   try {
     const messages = [
-      { role: "system", content: "You are an expert writing assistant." },
+      {
+        role: "system",
+        content: "You are an expert team assistant and writer.",
+      },
       {
         role: "user",
-        content: `I work at Typefully and these are all the tasks we've completed in the last 7 days:
+        content: `These are all the tasks we've completed in the last 7 days:
 
 ${issueText}
 
@@ -125,13 +153,19 @@ You can use these ## headlines, if you find related completed tasks:
 * Improvements
 * Fixes
 
-After each headline, you can add the * list of completed issues, nicely written. 
+For "New Features" you can add a separate ### title for each new feature you've found.
+
+For "Improvements" and "Fixes", you can directly write a * bullet list of completed tasks. 
+
+Make sure each task is nicely written, clear, and very concise (don't just repeat the task title). Never include links or tags.
 
 Feel free to use **bold text** at the start of the issue if you think it's important, but not for Fixes.
 
-Add a brief introduction to give a gift or overall theme of this week releases. No "welcome" or unnecessary text, always go straight to the point.
+If you don't include something in the changelog (because you think it's an internal fix or it contains sensitive information), append it at the end of the file after a --- separator and an "Excluded" title. 
 
-If you don't include something in the changelog (like internal fixes or things you don't understand), append it at the end of the file after a --- separator.
+Try your best to not write more than 500 words (for example fixes can be more concise than features and improvements).
+
+If you spot major improvements or a common theme in the tasks, write a brief introduction at the start. No "welcome" or unnecessary text, go straight to the point.
 
 Please now reply directly with the generated release-notes.md content`,
       },
@@ -140,7 +174,7 @@ Please now reply directly with the generated release-notes.md content`,
     const payload = {
       model: "gpt-4",
       messages: messages,
-      temperature: 0.7,
+      temperature: 0.6,
       stream: true,
     };
 
@@ -165,6 +199,8 @@ Please now reply directly with the generated release-notes.md content`,
     console.error(chalk.red("Error while generating summary:"), error);
   }
 }
+
+console.clear();
 
 getCompletedIssues()
   .then((issueText) => {

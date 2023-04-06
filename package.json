@@ -1,0 +1,14 @@
+{
+  "name": "auto-release-notes",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@linear/sdk": "^2.6.0",
+    "chalk": "4",
+    "cross-fetch": "^3.1.5",
+    "dayjs": "^1.11.7",
+    "dotenv": "^16.0.3",
+    "eventsource-parser": "^1.0.0"
+  }
+}

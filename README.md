@@ -1,5 +1,3 @@
-Here's a brief README.md for your project:
-
 # Release Notes Generator
 
 This is a Node.js script that **generates release notes** for your completed Linear issues in the past week. 

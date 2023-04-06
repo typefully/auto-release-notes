@@ -2,7 +2,9 @@ Here's a brief README.md for your project:
 
 # Release Notes Generator
 
-This project is a Node.js script that generates release notes for your completed Linear issues in the past week. It utilizes the Linear API and the OpenAI GPT language model to create a nicely formatted Markdown file with sections for New Features, Improvements, and Fixes.
+This is a Node.js script that **generates release notes** for your completed Linear issues in the past week. 
+
+It utilizes the Linear API and the OpenAI GPT language model to create a nicely formatted Markdown file with sections for New Features, Improvements, and Fixes.
 
 ## Setup
 
@@ -30,7 +32,13 @@ YOUR_OPENAI_API_KEY=<your-openai-api-key>
 Once you have set up the environment variables, simply run the script using yarn:
 
 ```
-yarn start
+yarn start [timerange]
 ```
+
+`timerange` is optional. It can be one of the following values:
+
+* `last-7-days` (default)
+* `current-week`
+* `previous-week`
 
 The script will generate the release notes, save them in a Markdown file named `release-notes-YYYY-MM-DD.md` (replacing YYYY-MM-DD with the current date), and display the contents in the console.

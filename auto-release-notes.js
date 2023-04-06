@@ -17,13 +17,27 @@ const linearClient = new LinearClient({
 
 /* ---------- Fetch and format completed issues from the past week ---------- */
 
-async function getCompletedIssues() {
-  const oneWeekAgo = dayjs().subtract(7, "day").toISOString();
+async function getCompletedIssues(type) {
+  const now = dayjs();
+  let updatedAtAfter;
+
+  switch (type) {
+    case "current-week":
+      updatedAtAfter = now.startOf("week").toISOString();
+      break;
+    case "previous-week":
+      updatedAtAfter = now.subtract(1, "week").startOf("week").toISOString();
+      break;
+    case "last-7-days":
+    default:
+      updatedAtAfter = now.subtract(7, "day").toISOString();
+      break;
+  }
+
   const issues = await linearClient.issues({
     orderBy: LinearDocument.PaginationOrderBy.UpdatedAt,
-    updatedAtAfter: oneWeekAgo,
     filter: {
-      completedAt: { null: false },
+      completedAt: { gte: updatedAtAfter },
       project: { null: true },
     },
   });
@@ -200,12 +214,45 @@ Please now reply directly with the generated release-notes.md content`,
   }
 }
 
+/* ----------------------------- Parse arguments ---------------------------- */
+
+function parseCommandLineArgs() {
+  const args = process.argv.slice(2);
+
+  if (args.length === 0) {
+    return "last-7-days";
+  }
+
+  const validArgs = ["last-7-days", "current-week", "previous-week"];
+  const type = args[0];
+
+  if (!validArgs.includes(type)) {
+    throw new Error(
+      "Invalid time range argument. Valid arguments are: 'last-7-days', 'current-week', or 'previous-week'."
+    );
+  }
+
+  return type;
+}
+
+/* ------------------------------- Run script ------------------------------- */
+
 console.clear();
 
-getCompletedIssues()
-  .then((issueText) => {
-    requestSummary(issueText);
-  })
-  .catch((error) => {
-    console.error(chalk.red("Error while fetching issues:"), error);
-  });
+try {
+  const timeRangeType = parseCommandLineArgs();
+  console.log(chalk.blue(`✓ Using time range: ${timeRangeType}`));
+
+  getCompletedIssues(timeRangeType)
+    .then((issueText) => {
+      requestSummary(issueText);
+    })
+    .catch((error) => {
+      console.error(chalk.red("Error while fetching issues:"), error);
+    });
+} catch (error) {
+  console.error(
+    chalk.red("Error while parsing command line arguments:"),
+    error
+  );
+}

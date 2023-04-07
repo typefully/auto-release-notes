@@ -46,3 +46,9 @@ yarn start [timerange]
 * `previous-week`
 
 The script will generate the release notes, save them in a Markdown file named `release-notes-YYYY-MM-DD.md` (replacing YYYY-MM-DD with the current date), and display the contents in the console.
+
+## Customize the Script
+
+The script is quite opinionated as it is. For example I'm excluding issues with projects, since closed project issues aren't usually live yet.
+
+I recommend customizing the `getCompletedIssues` function to suit your needs, for example filtering issues by project or label.

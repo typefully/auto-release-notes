@@ -1,8 +1,12 @@
 # Release Notes Generator
 
-This is a Node.js script that **generates release notes** for your completed Linear issues in the past week. 
+At [Typefully](https://typefully.com), we're often busy developing and don't spend much time communicating the work we do. That's why I created this Node.js script to **automatically generate release notes** for our completed Linear issues from the past week. 
 
-It utilizes the Linear API and the OpenAI GPT language model to create a nicely formatted Markdown file with sections for New Features, Improvements, and Fixes.
+It uses the Linear API and the OpenAI GPT language model to create a nicely formatted Markdown file with sections for New Features, Improvements, and Fixes.
+
+You can plug your Linear and OpenAI API keys into the script and run it to generate release notes for you.
+
+![Release Notes Generator](./assets/preview.gif)
 
 ## Setup
 
@@ -24,6 +28,8 @@ Open the .env file in your favorite text editor and replace the placeholder valu
 YOUR_LINEAR_PERSONAL_API_KEY=<your-linear-api-key>
 YOUR_OPENAI_API_KEY=<your-openai-api-key>
 ```
+
+You need [GPT-4 access](https://openai.com/waitlist/gpt-4-api) to make best use of this script, since it doesn't seems to work well with any other model.
 
 ## Run the Script
 

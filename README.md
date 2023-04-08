@@ -25,8 +25,8 @@ cp .env.template .env
 Open the .env file in your favorite text editor and replace the placeholder values with your actual Linear and OpenAI API keys:
 
 ```
-YOUR_LINEAR_PERSONAL_API_KEY=<your-linear-api-key>
-YOUR_OPENAI_API_KEY=<your-openai-api-key>
+LINEAR_API_KEY=<your-linear-api-key>
+OPENAI_API_KEY=<your-openai-api-key>
 ```
 
 You need [GPT-4 access](https://openai.com/waitlist/gpt-4-api) to make best use of this script, since it doesn't seems to work well with any other model.

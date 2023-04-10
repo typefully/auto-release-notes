@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "node auto-release-notes.js"
+    "start": "node index.js"
   },
   "dependencies": {
     "@linear/sdk": "^2.6.0",
